@@ -190,13 +190,13 @@ function module:Start()
     
     if Fluent then
         Fluent:Notify({
-            Title = "Highlight Downed Players",
-            Content = "Enabled (White = Alive | Yellow = Downed)",
+            Title = "Highlight Players",
+            Content = "Enabled",
             Duration = 3
         })
     end
     
-    print("Highlight Downed Players module started")
+    print("Highlight Players module started")
 end
 
 -- Stop the module
@@ -213,13 +213,13 @@ function module:Stop()
     
     if Fluent then
         Fluent:Notify({
-            Title = "Highlight Downed Players",
+            Title = "Highlight Players",
             Content = "Disabled",
             Duration = 3
         })
     end
     
-    print("Highlight Downed Players module stopped")
+    print("Highlight Players module stopped")
 end
 
 -- Toggle function (for keybinds)
