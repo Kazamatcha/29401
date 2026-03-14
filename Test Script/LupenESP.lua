@@ -84,12 +84,12 @@ local function createLupenESP()
     mainLabel.Name = "MainLabel"
     mainLabel.Size = UDim2.new(1, 0, 1, 0)
     mainLabel.BackgroundTransparency = 1
-    mainLabel.Text = "Lupen - [0m]"
+    mainLabel.Text = "Lupen"
     mainLabel.TextColor3 = Color3.fromRGB(0, 255, 0)  -- Зелёный
     mainLabel.TextStrokeColor3 = Color3.fromRGB(0, 100, 0)
     mainLabel.TextStrokeTransparency = 0
     mainLabel.TextSize = 16
-    mainLabel.Font = Enum.Font.GothamBold
+    mainLabel.Font = Enum.Font.RobotoMono
     mainLabel.TextXAlignment = Enum.TextXAlignment.Center
     mainLabel.TextYAlignment = Enum.TextYAlignment.Center
     mainLabel.Parent = billboard
