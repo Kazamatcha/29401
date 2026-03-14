@@ -1,286 +1,305 @@
 --[[
     Внешний модуль: Auto Farm Lupen для Draconic Hub
-    Версия: 1.0
-    Описание: Автоматическая ферма Лупина с телепортацией на платформу
+    Версия: 1.1 (Исправленная)
 ]]
 
--- Проверяем, не загружен ли уже модуль
-if _G.LupenFarmLoaded then
-    return
+-- Защита от повторной загрузки
+if _G.LupenFarmLoaded then 
+    return _G.LupenFarmModule 
 end
-_G.LupenFarmLoaded = true
 
--- Сервисы
+-- Сервисы (с защитой от nil)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
--- Переменные модуля
-local LupenFarm = {
-    Enabled = false,
-    Connection = nil,
-    RespawnConnection = nil,
-    CurrentTarget = nil,
-    Settings = {
-        TeleportOffset = Vector3.new(0, 5, 0),  -- Высота телепортации над Лупином
-        PlatformOffset = Vector3.new(0, 3, 0),  -- Высота над платформой
-        CheckInterval = 0.1,                     -- Интервал проверки (секунды)
-        AutoRespawn = true                        -- Автоматическое возрождение
-    }
+-- Создаем модуль
+local LupenFarmModule = {}
+
+-- Переменные
+LupenFarmModule.Enabled = false
+LupenFarmModule.Connection = nil
+LupenFarmModule.RespawnConnection = nil
+LupenFarmModule.CurrentTarget = nil
+LupenFarmModule.Settings = {
+    TeleportOffset = Vector3.new(0, 5, 0),
+    PlatformOffset = Vector3.new(0, 3, 0),
+    AutoRespawn = true
 }
 
--- Поиск безопасной платформы
-local function findSafePlatform()
+-- Безопасное создание платформы
+function LupenFarmModule:FindOrCreatePlatform()
     local platform = workspace:FindFirstChild("SecurityPart")
     
-    -- Если платформы нет, создаем новую
     if not platform then
-        platform = Instance.new("Part")
-        platform.Name = "SecurityPart"
-        platform.Size = Vector3.new(10, 1, 10)
-        platform.Position = Vector3.new(5000, 5000, 5000)
-        platform.Anchored = true
-        platform.CanCollide = true
-        platform.Material = Enum.Material.Neon
-        platform.BrickColor = BrickColor.new("Bright red")
-        platform.Parent = workspace
+        local success, result = pcall(function()
+            local newPlatform = Instance.new("Part")
+            newPlatform.Name = "SecurityPart"
+            newPlatform.Size = Vector3.new(10, 1, 10)
+            newPlatform.Position = Vector3.new(5000, 5000, 5000)
+            newPlatform.Anchored = true
+            newPlatform.CanCollide = true
+            newPlatform.Material = Enum.Material.Neon
+            newPlatform.BrickColor = BrickColor.new("Bright red")
+            newPlatform.Parent = workspace
+            return newPlatform
+        end)
         
-        -- Добавляем подсветку для видимости
-        local pointLight = Instance.new("PointLight")
-        pointLight.Color = Color3.new(1, 0, 0)
-        pointLight.Range = 20
-        pointLight.Brightness = 1
-        pointLight.Parent = platform
+        if success then
+            platform = result
+        end
     end
     
     return platform
 end
 
--- Телепортация на безопасную платформу
-function LupenFarm:TeleportToPlatform()
-    local character = LocalPlayer.Character
-    if not character then return false end
+-- Безопасная телепортация на платформу
+function LupenFarmModule:TeleportToPlatform()
+    local success, result = pcall(function()
+        local character = LocalPlayer.Character
+        if not character then return false end
+        
+        local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+        if not humanoidRootPart then return false end
+        
+        local platform = self:FindOrCreatePlatform()
+        if platform then
+            humanoidRootPart.CFrame = platform.CFrame + self.Settings.PlatformOffset
+            return true
+        end
+        return false
+    end)
     
-    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-    if not humanoidRootPart then return false end
-    
-    local platform = findSafePlatform()
-    if platform then
-        humanoidRootPart.CFrame = platform.CFrame + self.Settings.PlatformOffset
-        return true
-    end
-    return false
+    return success and result or false
 end
 
--- Поиск Лупина
-function LupenFarm:FindLupen()
-    -- Поиск в Game.Players
-    local gamePlayers = workspace:FindFirstChild("Game") and workspace.Game:FindFirstChild("Players")
-    if gamePlayers then
-        for _, obj in ipairs(gamePlayers:GetChildren()) do
-            if obj:IsA("Model") and (
-                obj.Name:lower():find("lupen") or 
-                obj.Name:lower():find("lupin") or
-                obj.Name:lower():find("lupine")
-            ) then
-                return obj
+-- Безопасный поиск Лупина
+function LupenFarmModule:FindLupen()
+    local success, result = pcall(function()
+        -- Поиск в Game.Players
+        local gamePlayers = workspace:FindFirstChild("Game") and workspace.Game:FindFirstChild("Players")
+        if gamePlayers then
+            for _, obj in ipairs(gamePlayers:GetChildren()) do
+                if obj:IsA("Model") then
+                    local name = obj.Name:lower()
+                    if name:find("lupen") or name:find("lupin") or name:find("lupine") then
+                        return obj
+                    end
+                end
             end
         end
-    end
-    
-    -- Поиск в NPCs
-    local npcs = workspace:FindFirstChild("NPCs")
-    if npcs then
-        for _, obj in ipairs(npcs:GetChildren()) do
-            if obj:IsA("Model") and (
-                obj.Name:lower():find("lupen") or 
-                obj.Name:lower():find("lupin") or
-                obj.Name:lower():find("lupine")
-            ) then
-                return obj
+        
+        -- Поиск в NPCs
+        local npcs = workspace:FindFirstChild("NPCs")
+        if npcs then
+            for _, obj in ipairs(npcs:GetChildren()) do
+                if obj:IsA("Model") then
+                    local name = obj.Name:lower()
+                    if name:find("lupen") or name:find("lupin") or name:find("lupine") then
+                        return obj
+                    end
+                end
             end
         end
-    end
+        
+        return nil
+    end)
     
-    return nil
+    return success and result or nil
 end
 
--- Получение корневой части модели
-local function getRootPart(model)
+-- Безопасное получение корневой части
+local function safeGetRootPart(model)
     if not model then return nil end
     
-    -- Проверяем стандартные части
-    return model:FindFirstChild("HumanoidRootPart") or
-           model:FindFirstChild("Head") or
-           model:FindFirstChild("Torso") or
-           model:FindFirstChild("UpperTorso") or
-           model.PrimaryPart or
-           model:FindFirstChildWhichIsA("BasePart")
+    local success, result = pcall(function()
+        return model:FindFirstChild("HumanoidRootPart") or
+               model:FindFirstChild("Head") or
+               model:FindFirstChild("Torso") or
+               model:FindFirstChild("UpperTorso") or
+               model.PrimaryPart or
+               model:FindFirstChildWhichIsA("BasePart")
+    end)
+    
+    return success and result or nil
 end
 
--- Телепортация к Лупину
-function LupenFarm:TeleportToLupen(lupen)
-    local character = LocalPlayer.Character
-    if not character then return false end
-    
-    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-    if not humanoidRootPart then return false end
-    
-    local lupenRoot = getRootPart(lupen)
-    if not lupenRoot then return false end
-    
-    humanoidRootPart.CFrame = lupenRoot.CFrame + self.Settings.TeleportOffset
-    return true
-end
-
--- Проверка, жив ли игрок
-function LupenFarm:IsPlayerDowned()
-    local character = LocalPlayer.Character
-    if not character then return true end
-    
-    -- Проверка через атрибут Downed
-    if character:GetAttribute("Downed") then
+-- Безопасная телепортация к Лупину
+function LupenFarmModule:TeleportToLupen(lupen)
+    local success, result = pcall(function()
+        local character = LocalPlayer.Character
+        if not character then return false end
+        
+        local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+        if not humanoidRootPart then return false end
+        
+        local lupenRoot = safeGetRootPart(lupen)
+        if not lupenRoot then return false end
+        
+        humanoidRootPart.CFrame = lupenRoot.CFrame + self.Settings.TeleportOffset
         return true
-    end
+    end)
     
-    -- Проверка через Humanoid
-    local humanoid = character:FindFirstChild("Humanoid")
-    if humanoid and (humanoid.Health <= 0 or humanoid:GetState() == Enum.HumanoidStateType.Dead) then
-        return true
-    end
-    
-    return false
+    return success and result or false
 end
 
--- Возрождение игрока
-function LupenFarm:RespawnPlayer()
+-- Проверка состояния игрока
+function LupenFarmModule:IsPlayerDowned()
+    local success, result = pcall(function()
+        local character = LocalPlayer.Character
+        if not character then return true end
+        
+        if character:GetAttribute("Downed") then
+            return true
+        end
+        
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid then
+            return humanoid.Health <= 0 or humanoid:GetState() == Enum.HumanoidStateType.Dead
+        end
+        
+        return false
+    end)
+    
+    return success and result or false
+.end
+
+-- Безопасное возрождение
+function LupenFarmModule:RespawnPlayer()
     if not self.Settings.AutoRespawn then return false end
     
     local success = pcall(function()
-        ReplicatedStorage.Events.Player.ChangePlayerMode:FireServer(true)
+        if ReplicatedStorage and 
+           ReplicatedStorage:FindFirstChild("Events") and
+           ReplicatedStorage.Events:FindFirstChild("Player") and
+           ReplicatedStorage.Events.Player:FindFirstChild("ChangePlayerMode") then
+            ReplicatedStorage.Events.Player.ChangePlayerMode:FireServer(true)
+        end
     end)
     
     return success
 end
 
--- Основной цикл обновления
-function LupenFarm:Update()
+-- Основной цикл (с защитой)
+function LupenFarmModule:Update()
     if not self.Enabled then return end
     
-    -- Проверяем состояние игрока
-    if self:IsPlayerDowned() then
-        self:RespawnPlayer()
-        return
-    end
-    
-    -- Ищем Лупина
-    local lupen = self:FindLupen()
-    
-    if lupen then
-        -- Лупин найден
-        if not self.CurrentTarget or self.CurrentTarget ~= lupen then
-            self.CurrentTarget = lupen
-            --print("Auto Farm: Лупин найден")
+    local success = pcall(function()
+        if self:IsPlayerDowned() then
+            self:RespawnPlayer()
+            return
         end
         
-        -- Телепортируемся к Лупину
-        self:TeleportToLupen(lupen)
-    else
-        -- Лупин исчез
-        if self.CurrentTarget then
-            self.CurrentTarget = nil
-            --print("Auto Farm: Лупин исчез, возвращаюсь на платформу")
-            self:TeleportToPlatform()
+        local lupen = self:FindLupen()
+        
+        if lupen then
+            if not self.CurrentTarget or self.CurrentTarget ~= lupen then
+                self.CurrentTarget = lupen
+            end
+            self:TeleportToLupen(lupen)
+        else
+            if self.CurrentTarget then
+                self.CurrentTarget = nil
+                self:TeleportToPlatform()
+            end
         end
+    end)
+    
+    if not success then
+        -- Если ошибка, просто игнорируем этот цикл
     end
 end
 
--- Запуск авто-фермы
-function LupenFarm:Start()
-    if self.Enabled then return end
+-- Запуск
+function LupenFarmModule:Start()
+    if self.Enabled then return true end
     
     self.Enabled = true
     self.CurrentTarget = nil
     
-    -- Сначала телепортируемся на платформу
+    -- Телепорт на платформу
     self:TeleportToPlatform()
     
-    -- Запускаем цикл обновления
+    -- Очищаем старые соединения
     if self.Connection then
-        self.Connection:Disconnect()
+        pcall(function() self.Connection:Disconnect() end)
+        self.Connection = nil
     end
     
+    if self.RespawnConnection then
+        pcall(function() self.RespawnConnection:Disconnect() end)
+        self.RespawnConnection = nil
+    end
+    
+    -- Новые соединения
     self.Connection = RunService.Heartbeat:Connect(function()
         self:Update()
     end)
     
-    -- Обработка респавна
-    if self.RespawnConnection then
-        self.RespawnConnection:Disconnect()
-    end
-    
     self.RespawnConnection = LocalPlayer.CharacterAdded:Connect(function()
-        task.wait(1) -- Ждем загрузки персонажа
+        task.wait(1)
         if self.Enabled then
             self:TeleportToPlatform()
         end
     end)
     
     -- Уведомление
-    self:Notify("Auto Farm Lupen включен", 3)
+    self:Notify("Auto Farm Lupen включен")
     
     return true
 end
 
--- Остановка авто-фермы
-function LupenFarm:Stop()
-    if not self.Enabled then return end
+-- Остановка
+function LupenFarmModule:Stop()
+    if not self.Enabled then return true end
     
     self.Enabled = false
     self.CurrentTarget = nil
     
     -- Отключаем соединения
     if self.Connection then
-        self.Connection:Disconnect()
+        pcall(function() self.Connection:Disconnect() end)
         self.Connection = nil
     end
     
     if self.RespawnConnection then
-        self.RespawnConnection:Disconnect()
+        pcall(function() self.RespawnConnection:Disconnect() end)
         self.RespawnConnection = nil
     end
     
-    -- Возвращаемся на платформу
+    -- Возврат на платформу
     self:TeleportToPlatform()
     
     -- Уведомление
-    self:Notify("Auto Farm Lupen выключен", 3)
+    self:Notify("Auto Farm Lupen выключен")
     
     return true
 end
 
--- Отправка уведомления (если доступен Fluent)
-function LupenFarm:Notify(message, duration)
-    -- Пробуем использовать Fluent, если он доступен
-    if Fluent and Fluent.Notify then
-        Fluent:Notify({
-            Title = "Auto Farm Lupen",
-            Content = message,
-            Duration = duration or 3
-        })
-    else
-        -- Запасной вариант через Roblox уведомления
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "Auto Farm Lupen",
-            Text = message,
-            Duration = duration or 3
-        })
-    end
+-- Уведомление
+function LupenFarmModule:Notify(message)
+    local success = pcall(function()
+        if Fluent and Fluent.Notify then
+            Fluent:Notify({
+                Title = "Auto Farm Lupen",
+                Content = message,
+                Duration = 3
+            })
+        else
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "Auto Farm Lupen",
+                Text = message,
+                Duration = 3
+            })
+        end
+    end)
 end
 
 -- Настройка параметров
-function LupenFarm:SetSettings(settings)
+function LupenFarmModule:SetSettings(settings)
+    if not settings then return end
+    
     for key, value in pairs(settings) do
         if self.Settings[key] ~= nil then
             self.Settings[key] = value
@@ -288,29 +307,25 @@ function LupenFarm:SetSettings(settings)
     end
 end
 
--- Получение статуса
-function LupenFarm:IsEnabled()
+-- Проверка статуса
+function LupenFarmModule:IsEnabled()
     return self.Enabled
 end
 
--- Получение текущей цели
-function LupenFarm:GetCurrentTarget()
+-- Получение цели
+function LupenFarmModule:GetCurrentTarget()
     return self.CurrentTarget
 end
 
--- Принудительное обновление позиции на платформе
-function LupenFarm:RefreshPlatform()
+-- Обновление платформы
+function LupenFarmModule:RefreshPlatform()
     return self:TeleportToPlatform()
 .end
 
--- Экспортируем модуль в глобальную переменную
-_G.LupenFarm = LupenFarm
-
--- Автоматический запуск при загрузке (опционально)
--- _G.LupenFarm:Start()
+-- Экспортируем модуль
+_G.LupenFarmLoaded = true
+_G.LupenFarmModule = LupenFarmModule
 
 print("✅ Auto Farm Lupen module loaded successfully!")
-print("ℹ️ Use _G.LupenFarm:Start() to enable, _G.LupenFarm:Stop() to disable")
 
--- Возвращаем модуль для использования в основном скрипте
-return LupenFarm
+return LupenFarmModule
