@@ -7707,6 +7707,28 @@ InfoTab:AddButton({
     end
 })
 
+InfoTab:AddParagraph({
+    Title = "Discord Server Support",
+    Content = "Join our Discord Server for updates and support"
+})
+
+InfoTab:AddButton({
+    Title = "Copy Discord Link",
+    Description = "Click to copy Discord link to clipboard",
+    Callback = function()
+        local telegramLink = "https://discord.gg/F74VB7u"
+        
+        -- Копирование в буфер обмена
+        setclipboard(telegramLink)
+        
+        Fluent:Notify({
+            Title = "Discord",
+            Content = "Link copied to clipboard!",
+            Duration = 3
+        })
+    end
+})
+
 Window:SelectTab(1)
 SaveManager:LoadAutoloadConfig()
 loadstring(game:HttpGet('https://raw.githubusercontent.com/Ksjsowos/29401/refs/heads/main/Online%20Script/TimerGUI.lua'))()
