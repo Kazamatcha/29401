@@ -7570,6 +7570,82 @@ player.CharacterAdded:Connect(function(character)
     end
 end)
 
+local EventTab = Window:AddTab({ Title = "Event", Icon = "calendar" })
+
+EventTab:AddSection("Modification Event")
+
+-- Загружаем внешний модуль Lupen ESP
+local LupenESPModule = loadstring(game:HttpGet("https://raw.githubusercontent.com/Ksjsowos/29401/refs/heads/main/Test%20Script/LupenESP.lua"))()
+LupenESPModule:Init(Fluent, Options)
+
+-- Добавляем тумблер
+local LupenESPToggle = EventTab:AddToggle("LupenESPToggle", {
+    Title = "ESP Lupen",
+    Default = false,
+    Callback = function(state)
+        if state then
+            LupenESPModule:Start()
+        else
+            LupenESPModule:Stop()
+        end
+    end
+})
+
+-- ==================== AUTO FARM LUPEN (ROTATION MODE) ====================
+-- Добавьте этот код в конец файла ScriptMobile.lua, например, после раздела Auto Ticket Farm
+
+-- Переменные для Auto Farm Lupen
+local AutoLupenConnection = nil
+local AutoLupenEnabled = false
+local LupenTarget = nil
+local RotationAngle = 0
+local RotationRadius = 1 -- Радиус вращения вокруг Lupen
+local RotationSpeed = 15 -- Скорость вращения
+
+-- Функция для поиска Lupen в workspace.Game.Players
+local function findLupen()
+    local gamePlayers = workspace:FindFirstChild("Game") and workspace.Game:FindFirstChild("Players")
+    if not gamePlayers then return nil end
+    
+    -- Ищем персонажа с именем "Lupen"
+    local lupen = gamePlayers:FindFirstChild("Lupen")
+    if not lupen then 
+        -- Альтернативный поиск: ищем по части имени
+        for _, playerObj in ipairs(gamePlayers:GetChildren()) do
+            if playerObj.Name:lower():find("lupen") then
+                lupen = playerObj
+                break
+            end
+        end
+    end
+    
+    return lupen
+end
+
+-- Основная функция Auto Farm Lupen
+local function startAutoLupen()
+    if AutoLupenConnection then return end
+    
+    local securityPart = workspace:FindFirstChild("SecurityPart")
+    RotationAngle = 0 -- Сбрасываем угол при старте
+    
+    AutoLupenConnection = RunService.Heartbeat:Connect(function()
+        if not AutoLupenEnabled then return end
+        
+        local character = LocalPlayer.Character
+        if not character then return end
+        
+        local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+        if not humanoidRootPart then return end
+        
+        -- Проверяем, не лежит ли игрок
+        if character:GetAttribute("Downed") then
+            -- Автоматическое возрождение
+            pcall(function()
+                ReplicatedStorage.Events.Player.ChangePlayerMode:FireServer(true)
+            end)
+
+
 local SettingsTab = Window:AddTab({ Title = "Settings", Icon = "settings" })
 
 SettingsTab:AddSection("Configuration")
