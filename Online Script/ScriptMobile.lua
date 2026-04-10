@@ -1,3 +1,4 @@
+game:GetService("Players").LocalPlayer.PlayerGui.DraconicHubGui:Destroy()
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "Draconic Hub X Evade",
     Text = "Welcome Draconic Hub Remake",
