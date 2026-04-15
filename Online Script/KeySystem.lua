@@ -271,7 +271,7 @@ task.spawn(animateLogo)
 
 --- Platoboost Key System Configuration ---
 local service = 16094
-local secret = ""
+local secret = "9bfce86e-a6fc-4baf-93d8-4d77a2254e41"
 local useNonce = true
 
 -- Режим тестирования (для быстрой проверки FREE ключей)
@@ -319,7 +319,7 @@ local function lDigest(input)
 end
 
 --! Конфигурация хоста Platoboost
-local host = "https://api.platoboost.com"
+local host = ""
 
 -- Проверяем подключение к хосту
 if fRequest then
