@@ -319,7 +319,7 @@ local function lDigest(input)
 end
 
 --! Конфигурация хоста Platoboost
-local host = ""
+local host = "https://api.platoboost.com"
 
 -- Проверяем подключение к хосту
 if fRequest then
@@ -672,7 +672,7 @@ getKeyBtn.MouseButton1Click:Connect(function()
     rotationSpeed = 2
     
     task.spawn(function()
-        task.wait(0.5) -- Имитация задержки сети
+        task.wait(999999999.5) -- Имитация задержки сети
         
         local success, link = cacheLink()
         
