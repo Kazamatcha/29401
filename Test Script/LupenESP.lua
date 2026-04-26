@@ -21,7 +21,7 @@ local moduleState = {
     MonitorConnection = nil,
     ChildAddedConnection = nil,
     ChildRemovedConnection = nil,
-    PlayerName = "Lupen"
+    PlayerName = "Bee"
 }
 
 -- Функция для создания зелёного ESP для Lupen
@@ -59,9 +59,9 @@ local function createLupenESP()
     
     -- ===== 1. СОЗДАЁМ HIGHLIGHT (ЗЕЛЁНОЕ СВЕЧЕНИЕ) =====
     local highlight = Instance.new("Highlight")
-    highlight.Name = "LupenHighlight"
+    highlight.Name = "BeeHighlight"
     highlight.Adornee = lupenModel
-    highlight.FillColor = Color3.fromRGB(0, 255, 0)  -- Зелёный
+    highlight.FillColor = Color3.fromRGB(255, 255, 0)  -- Зелёный
     highlight.FillTransparency = 0.3
     highlight.OutlineColor = Color3.fromRGB(0, 200, 0)
     highlight.OutlineTransparency = 0
@@ -72,7 +72,7 @@ local function createLupenESP()
     
     -- ===== 2. СОЗДАЁМ BILLBOARD GUI (ТЕКСТ НАД ГОЛОВОЙ) =====
     local billboard = Instance.new("BillboardGui")
-    billboard.Name = "LupenESP"
+    billboard.Name = "BeeESP"
     billboard.Adornee = hrp
     billboard.Size = UDim2.new(0, 200, 0, 30)
     billboard.StudsOffset = Vector3.new(0, 3, 0)
@@ -84,8 +84,8 @@ local function createLupenESP()
     mainLabel.Name = "MainLabel"
     mainLabel.Size = UDim2.new(1, 0, 1, 0)
     mainLabel.BackgroundTransparency = 1
-    mainLabel.Text = "Lupen"
-    mainLabel.TextColor3 = Color3.fromRGB(0, 255, 0)  -- Зелёный
+    mainLabel.Text = "Bee"
+    mainLabel.TextColor3 = Color3.fromRGB(255, 255, 0)  -- Зелёный
     mainLabel.TextStrokeColor3 = Color3.fromRGB(0, 100, 0)
     mainLabel.TextStrokeTransparency = 0
     mainLabel.TextSize = 16
@@ -102,7 +102,7 @@ local function createLupenESP()
     local tracer = Drawing.new("Line")
     tracer.Visible = false
     tracer.Thickness = 2
-    tracer.Color = Color3.fromRGB(0, 255, 0)  -- Зелёный
+    tracer.Color = Color3.fromRGB(255, 255, 0)  -- Зелёный
     tracer.Transparency = 1
     tracer.ZIndex = 2
     
@@ -136,7 +136,7 @@ local function createLupenESP()
         -- Обновляем расстояние в тексте
         if hrp and playerHRP then
             local distance = (playerHRP.Position - hrp.Position).Magnitude
-            mainLabel.Text = string.format("Lupen - [%.0fm]", distance)
+            mainLabel.Text = string.format("Bee - [%.0fm]", distance)
         end
         
         -- Обновляем Tracer
@@ -165,7 +165,7 @@ local function createLupenESP()
         end
     end)
     
-    print("[Lupen ESP] Created for", moduleState.PlayerName)
+    print("[Bee ESP] Created for", moduleState.PlayerName)
     return true
 end
 
@@ -191,7 +191,7 @@ local function removeLupenESP()
         moduleState.Connection = nil
     end
     
-    print("[Lupen ESP] Removed")
+    print("[Bee ESP] Removed")
 end
 
 -- Функция для поиска и применения ESP к Lupen
@@ -217,7 +217,7 @@ function LupenESP:Start()
     if moduleState.Enabled then return end
     
     moduleState.Enabled = true
-    print("[Lupen ESP] Starting...")
+    print("[Bee ESP] Starting...")
     
     -- Проверяем сразу
     checkForLupen()
@@ -250,7 +250,7 @@ function LupenESP:Start()
     
     if Fluent then
         Fluent:Notify({
-            Title = "Lupen ESP",
+            Title = "Bee ESP",
             Content = "Enable",
             Duration = 3
         })
@@ -261,7 +261,7 @@ function LupenESP:Stop()
     if not moduleState.Enabled then return end
     
     moduleState.Enabled = false
-    print("[Lupen ESP] Stopping...")
+    print("[Bee ESP] Stopping...")
     
     -- Удаляем ESP
     removeLupenESP()
@@ -284,7 +284,7 @@ function LupenESP:Stop()
     
     if Fluent then
         Fluent:Notify({
-            Title = "Lupen ESP",
+            Title = "Bee ESP",
             Content = "Disabled",
             Duration = 3
         })
